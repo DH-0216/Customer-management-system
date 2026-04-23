@@ -35,13 +35,13 @@ public class CustomerControllerTest {
     void createCustomer_ValidRequest_ReturnsCreated() throws Exception {
         CustomerRequestDTO request = new CustomerRequestDTO();
         request.setName("Alice");
-        request.setNicNumber("19901234567v");
+        request.setNicNumber("199012345v");
         request.setDateOfBirth(LocalDate.of(1990, 5, 5));
 
         CustomerResponseDTO response = new CustomerResponseDTO();
         response.setId(1L);
         response.setName("Alice");
-        response.setNicNumber("19901234567v");
+        response.setNicNumber("199012345v");
 
         when(customerService.createCustomer(any(CustomerRequestDTO.class))).thenReturn(response);
 
