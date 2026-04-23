@@ -1,11 +1,11 @@
-import { useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
-import DatePicker from 'react-datepicker'
-import { useNavigate } from 'react-router-dom'
-import { Save, X } from 'lucide-react'
-import PhoneNumberList   from './PhoneNumberList'
-import AddressList       from './AddressList'
-import FamilyMemberPicker from './FamilyMemberPicker'
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import DatePicker from "react-datepicker";
+import { useNavigate } from "react-router-dom";
+import { Save, X } from "lucide-react";
+import PhoneNumberList from "./PhoneNumberList";
+import AddressList from "./AddressList";
+import FamilyMemberPicker from "./FamilyMemberPicker";
 
 /**
  * CustomerForm — shared Create / Edit form
@@ -21,7 +21,7 @@ export default function CustomerForm({
   isLoading = false,
   customerId = null,
 }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const {
     register,
@@ -33,41 +33,68 @@ export default function CustomerForm({
     formState: { errors },
   } = useForm({
     defaultValues: defaultValues || {
-      name:          '',
-      dateOfBirth:   null,
-      nicNumber:     '',
+      name: "",
+      dateOfBirth: null,
+      nicNumber: "",
       mobileNumbers: [],
-      addresses:     [],
+      addresses: [],
       familyMemberIds: [],
     },
-  })
+  });
 
   // Reset when defaultValues change (edit page)
   useEffect(() => {
-    if (defaultValues) reset(defaultValues)
-  }, [defaultValues, reset])
+    if (defaultValues) reset(defaultValues);
+  }, [defaultValues, reset]);
 
-  const familyIds = watch('familyMemberIds') || []
+  const familyIds = watch("familyMemberIds") || [];
+
+  const parseDateOnly = (value) => {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+
+    if (typeof value === "string") {
+      const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (match) {
+        const [, year, month, day] = match;
+        return new Date(Number(year), Number(month) - 1, Number(day));
+      }
+
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    return null;
+  };
+
+  const formatDateOnly = (value) => {
+    if (!value) return null;
+    if (typeof value === "string") return value;
+    if (!(value instanceof Date) || Number.isNaN(value.getTime())) return null;
+
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   const submitHandler = (data) => {
     const payload = {
       ...data,
-      dateOfBirth: data.dateOfBirth
-        ? new Date(data.dateOfBirth).toISOString().split('T')[0]
-        : null,
+      dateOfBirth: formatDateOnly(data.dateOfBirth),
       mobileNumbers: (data.mobileNumbers || [])
         .filter((m) => m.number?.trim())
         .map((m) => ({ number: m.number.trim() })),
       addresses: (data.addresses || []).map((a) => ({
-        addressLine1: a.addressLine1 || '',
-        addressLine2: a.addressLine2 || '',
+        addressLine1: a.addressLine1 || "",
+        addressLine2: a.addressLine2 || "",
         countryId: a.countryId ? Number(a.countryId) : null,
-        cityId:    a.cityId    ? Number(a.cityId)    : null,
+        cityId: a.cityId ? Number(a.cityId) : null,
       })),
       familyMemberIds: data.familyMemberIds || [],
-    }
-    onSubmit(payload)
-  }
+    };
+    onSubmit(payload);
+  };
 
   return (
     <form onSubmit={handleSubmit(submitHandler)} noValidate>
@@ -86,12 +113,12 @@ export default function CustomerForm({
             <input
               type="text"
               placeholder="e.g. John Doe"
-              {...register('name', {
-                required: 'Name is required',
-                minLength: { value: 2, message: 'Minimum 2 characters' },
-                maxLength: { value: 120, message: 'Maximum 120 characters' },
+              {...register("name", {
+                required: "Name is required",
+                minLength: { value: 2, message: "Minimum 2 characters" },
+                maxLength: { value: 120, message: "Maximum 120 characters" },
               })}
-              className={errors.name ? 'input-error' : ''}
+              className={errors.name ? "input-error" : ""}
             />
             {errors.name && <p className="form-error">{errors.name.message}</p>}
           </div>
@@ -104,14 +131,14 @@ export default function CustomerForm({
             <input
               type="text"
               placeholder="e.g. 199012345678"
-              {...register('nicNumber', {
-                required: 'NIC number is required',
+              {...register("nicNumber", {
+                required: "NIC number is required",
                 pattern: {
                   value: /^[0-9]{9}[vVxX]$|^[0-9]{12}$/,
-                  message: 'Enter a valid NIC (9+V or 12 digits)',
+                  message: "Enter a valid NIC (9+V or 12 digits)",
                 },
               })}
-              className={errors.nicNumber ? 'input-error' : ''}
+              className={errors.nicNumber ? "input-error" : ""}
             />
             {errors.nicNumber && (
               <p className="form-error">{errors.nicNumber.message}</p>
@@ -126,18 +153,18 @@ export default function CustomerForm({
             <Controller
               control={control}
               name="dateOfBirth"
-              rules={{ required: 'Date of birth is required' }}
+              rules={{ required: "Date of birth is required" }}
               render={({ field }) => (
                 <DatePicker
                   placeholderText="Select date"
-                  selected={field.value ? new Date(field.value) : null}
+                  selected={parseDateOnly(field.value)}
                   onChange={(date) => field.onChange(date)}
                   dateFormat="yyyy-MM-dd"
                   showYearDropdown
                   scrollableYearDropdown
                   yearDropdownItemNumber={80}
                   maxDate={new Date()}
-                  className={errors.dateOfBirth ? 'input-error' : ''}
+                  className={errors.dateOfBirth ? "input-error" : ""}
                   wrapperClassName="react-datepicker-wrapper"
                   popperPlacement="bottom-start"
                 />
@@ -154,9 +181,7 @@ export default function CustomerForm({
       <div className="card" style={{ marginBottom: 20 }}>
         <div className="card-header">
           <span className="card-title">Mobile Numbers</span>
-          <span
-            style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}
-          >
+          <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
             Optional — multiple allowed
           </span>
         </div>
@@ -171,9 +196,7 @@ export default function CustomerForm({
       <div className="card" style={{ marginBottom: 20 }}>
         <div className="card-header">
           <span className="card-title">Addresses</span>
-          <span
-            style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}
-          >
+          <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
             Optional — multiple allowed
           </span>
         </div>
@@ -189,9 +212,7 @@ export default function CustomerForm({
       <div className="card" style={{ marginBottom: 28 }}>
         <div className="card-header">
           <span className="card-title">Family Members</span>
-          <span
-            style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}
-          >
+          <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
             Link other registered customers
           </span>
         </div>
@@ -209,7 +230,7 @@ export default function CustomerForm({
       </div>
 
       {/* ── Actions ───────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+      <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
         <button
           type="button"
           className="btn btn-secondary btn-lg"
@@ -224,9 +245,9 @@ export default function CustomerForm({
           disabled={isLoading}
         >
           <Save size={16} />
-          {isLoading ? 'Saving…' : 'Save Customer'}
+          {isLoading ? "Saving…" : "Save Customer"}
         </button>
       </div>
     </form>
-  )
+  );
 }
