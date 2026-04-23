@@ -1,13 +1,5 @@
--- ─── Drop order (children first) ─────────────────────────────────────────────
-DROP TABLE IF EXISTS customer_family;
-DROP TABLE IF EXISTS mobile_number;
-DROP TABLE IF EXISTS address;
-DROP TABLE IF EXISTS customer;
-DROP TABLE IF EXISTS city;
-DROP TABLE IF EXISTS country;
-
 -- ─── Master : country ─────────────────────────────────────────────────────────
-CREATE TABLE country (
+CREATE TABLE IF NOT EXISTS country (
     id   BIGINT       NOT NULL AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     PRIMARY KEY (id),
@@ -15,7 +7,7 @@ CREATE TABLE country (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ─── Master : city ────────────────────────────────────────────────────────────
-CREATE TABLE city (
+CREATE TABLE IF NOT EXISTS city (
     id         BIGINT       NOT NULL AUTO_INCREMENT,
     name       VARCHAR(100) NOT NULL,
     country_id BIGINT       NOT NULL,
@@ -24,7 +16,7 @@ CREATE TABLE city (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ─── Core : customer ──────────────────────────────────────────────────────────
-CREATE TABLE customer (
+CREATE TABLE IF NOT EXISTS customer (
     id            BIGINT       NOT NULL AUTO_INCREMENT,
     name          VARCHAR(120) NOT NULL,
     date_of_birth DATE         NOT NULL,
@@ -36,7 +28,7 @@ CREATE TABLE customer (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ─── Mobile numbers ──────────────────────────────────────────────────────────
-CREATE TABLE mobile_number (
+CREATE TABLE IF NOT EXISTS mobile_number (
     id          BIGINT      NOT NULL AUTO_INCREMENT,
     customer_id BIGINT      NOT NULL,
     number      VARCHAR(30) NOT NULL,
@@ -45,7 +37,7 @@ CREATE TABLE mobile_number (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ─── Addresses ────────────────────────────────────────────────────────────────
-CREATE TABLE address (
+CREATE TABLE IF NOT EXISTS address (
     id             BIGINT       NOT NULL AUTO_INCREMENT,
     customer_id    BIGINT       NOT NULL,
     address_line1  VARCHAR(200),
@@ -59,7 +51,7 @@ CREATE TABLE address (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ─── Family members (self-referencing M:M) ────────────────────────────────────
-CREATE TABLE customer_family (
+CREATE TABLE IF NOT EXISTS customer_family (
     customer_id       BIGINT NOT NULL,
     family_member_id  BIGINT NOT NULL,
     PRIMARY KEY (customer_id, family_member_id),
