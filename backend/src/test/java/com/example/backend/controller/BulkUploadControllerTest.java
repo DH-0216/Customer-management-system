@@ -32,8 +32,7 @@ class BulkUploadControllerTest {
 				"file",
 				"customers.xlsx",
 				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-				"dummy".getBytes()
-		);
+				"dummy".getBytes());
 
 		mockMvc.perform(multipart("/api/customers/bulk-upload").file(file))
 				.andExpect(status().isAccepted())
@@ -41,19 +40,18 @@ class BulkUploadControllerTest {
 	}
 
 	@Test
-	void upload_xls_returnsBadRequest() throws Exception {
+	void upload_xls_returnsAcceptedWithJobId() throws Exception {
+		when(bulkUploadService.submitJob(any())).thenReturn("job-456");
+
 		MockMultipartFile file = new MockMultipartFile(
 				"file",
 				"customers.xls",
 				"application/vnd.ms-excel",
-				"dummy".getBytes()
-		);
+				"dummy".getBytes());
 
 		mockMvc.perform(multipart("/api/customers/bulk-upload").file(file))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.error").value("Only .xlsx files are accepted"));
-
-		verifyNoInteractions(bulkUploadService);
+				.andExpect(status().isAccepted())
+				.andExpect(jsonPath("$.jobId").value("job-456"));
 	}
 
 	@Test
@@ -62,14 +60,12 @@ class BulkUploadControllerTest {
 				"file",
 				"customers.csv",
 				"text/csv",
-				"name,dob,nic".getBytes()
-		);
+				"name,dob,nic".getBytes());
 
 		mockMvc.perform(multipart("/api/customers/bulk-upload").file(file))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.error").value("Only .xlsx files are accepted"));
+				.andExpect(jsonPath("$.error").value("Only .xlsx and .xls files are accepted"));
 
 		verifyNoInteractions(bulkUploadService);
 	}
 }
-

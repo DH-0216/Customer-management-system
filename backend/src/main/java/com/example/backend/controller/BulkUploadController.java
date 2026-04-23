@@ -33,10 +33,15 @@ public class BulkUploadController {
         }
 
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null ||
-            !originalFilename.toLowerCase(Locale.ROOT).endsWith(".xlsx")) {
+        if (originalFilename == null) {
             return ResponseEntity.badRequest()
-                    .body(Collections.singletonMap("error", "Only .xlsx files are accepted"));
+                    .body(Collections.singletonMap("error", "No filename provided"));
+        }
+
+        String lowerFilename = originalFilename.toLowerCase(Locale.ROOT);
+        if (!lowerFilename.endsWith(".xlsx") && !lowerFilename.endsWith(".xls")) {
+            return ResponseEntity.badRequest()
+                    .body(Collections.singletonMap("error", "Only .xlsx and .xls files are accepted"));
         }
 
         String jobId = bulkUploadService.submitJob(file);

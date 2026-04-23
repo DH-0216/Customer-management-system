@@ -67,9 +67,9 @@ public class BulkUploadService {
 
         List<BulkUploadResultDTO.RowError> errors = Collections.synchronizedList(new ArrayList<>());
         List<ExcelStreamingParser.ParsedRow> pendingRows = new ArrayList<>(batchSize);
-        Set<String> nicsSeen = new HashSet<>();   // dedup within upload
-        int[] processed = {0};
-        int[] failed    = {0};
+        Set<String> nicsInCurrentBatch = new HashSet<>(); // Track NICs in current batch only
+        int[] processed = { 0 };
+        int[] failed = { 0 };
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -86,7 +86,7 @@ public class BulkUploadService {
                     }
 
                     // Skip duplicate within file
-                    if (!nicsSeen.add(nic)) {
+                    if (!nicsInCurrentBatch.add(nic)) {
                         errors.add(new BulkUploadResultDTO.RowError(parsedRow.rowNum,
                                 "Duplicate NIC in file: " + nic));
                         failed[0]++;
@@ -109,6 +109,7 @@ public class BulkUploadService {
                     if (pendingRows.size() >= batchSize) {
                         processed[0] += flushPendingRows(pendingRows, dateFormatter);
                         pendingRows.clear();
+                        nicsInCurrentBatch.clear(); // Memory safety: don't accumulate NICs
                         log.debug("Bulk upsert: {} records saved", processed[0]);
                     }
                 } catch (Exception e) {
@@ -138,7 +139,7 @@ public class BulkUploadService {
     }
 
     private int flushPendingRows(List<ExcelStreamingParser.ParsedRow> rows,
-                                 DateTimeFormatter dateFormatter) {
+            DateTimeFormatter dateFormatter) {
         Set<String> nicSet = rows.stream()
                 .map(r -> r.nicNumber.trim())
                 .collect(Collectors.toSet());
