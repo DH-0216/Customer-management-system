@@ -7,6 +7,8 @@ import PhoneNumberList from "./PhoneNumberList";
 import AddressList from "./AddressList";
 import FamilyMemberPicker from "./FamilyMemberPicker";
 
+const DatePickerComponent = DatePicker?.default ?? DatePicker;
+
 /**
  * CustomerForm — shared Create / Edit form
  * Props:
@@ -155,7 +157,7 @@ export default function CustomerForm({
               name="dateOfBirth"
               rules={{ required: "Date of birth is required" }}
               render={({ field }) => (
-                <DatePicker
+                <DatePickerComponent
                   placeholderText="Select date"
                   selected={parseDateOnly(field.value)}
                   onChange={(date) => field.onChange(date)}
